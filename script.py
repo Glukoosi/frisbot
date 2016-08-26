@@ -1,25 +1,31 @@
 import socket
 import sys
 
-ircserver = "irc.nebula.fi"
+ircserver = "irc.inet.fi"
 port = 6667
 
-nick = "frisbot"
+nick = "frisbotti"
 username = "frisbot"
 realname = "testing frisbot"
 channel = "#frisbottest"
 
+def main():
+	irc = connect()
+	inputloop(irc)
 
-irc=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-irc.connect((ircserver, port))
+def connect():
+	irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	irc.connect((ircserver, port))
 
-print irc.recv( 4096 )
-irc.send( "USER %s a a :%s" % (username, realname))
-irc.send("NICK %s" % nick)   
-irc.send("JOIN %s" % channel)
+	irc.send( "USER %s a a :%s\r\n" % (username, realname))
+	irc.send("NICK %s\n" % nick)  
+	irc.send("JOIN %s\n" % channel)
+	return irc
 
-while True:
-	data = irc.recv ( 4096 )
-	print data
-   	if data.find ("PING") != -1:
-		irc.send ( "PONG" + data.split() [ 1 ] + '\r\n' )
+def inputloop(irc):
+	while True:
+		data = irc.recv ( 4096 )
+		print(data)
+		if data.find ("PING") != -1:
+			irc.send ( "PONG " + data.split() [ 1 ] + "\r\n" )
+main()
