@@ -9,8 +9,11 @@ username = "frisbot"
 realname = "testing frisbot"
 channel = "#frisbottest"
 
+operators = ["Glukoosi", "Maltoosi"]
+
 def main():
 	irc = connect()
+	say("gibe op pls", irc)
 	inputloop(irc)
 
 def connect():
@@ -31,15 +34,33 @@ def inputloop(irc):
 		if data.find ("JOIN") != -1:
 			data = data.split("!")
 			data = data[0].lstrip(":")
-			print data
-			if rankcheck(data) == 1:
-				irc.send("MODE %s +o %s\r\n" % (channel, data))
+			op(data, irc)
+		if data.find (" MODE %s +o %s" % (channel, nick)) != -1:
+			names = namelist(irc)
+			for name in names:
+				op(name, irc)
 
 def rankcheck(nick):
-	if nick == "Maltoosi" or nick == "Glukoosi":
-		return 1
-	else:
-		return 0
-	
-  
+	for op in operators:
+		if nick == op:
+			return 1
+	return 0
+
+def say(message, irc):
+	irc.send("PRIVMSG %s :%s\r\n" %(channel, message))
+	return ""
+
+def namelist(irc):
+	irc.send("NAMES %s\r\n" % channel)
+	names = irc.recv ( 4096 )
+	names = names.split(":")
+	names = names[2].split(" ")
+	names.pop()
+	print names
+	return names
+
+def op(name, irc):
+	if rankcheck(name) == 1:
+		irc.send("MODE %s +o %s\r\n" % (channel, name))
+
 main()
