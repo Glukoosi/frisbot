@@ -1,5 +1,7 @@
 import socket
-import sys
+import time
+import urllib2
+import json
 
 ircserver = "irc.inet.fi"
 port = 6667
@@ -9,10 +11,10 @@ username = "frisbot"
 realname = "testing frisbot"
 channel = "#frisbottest"
 
-operators = ["Glukoosi", "Maltoosi"]
 
 def main():
 	irc = connect()
+	time.sleep(5)
 	say("gibe op pls", irc)
 	inputloop(irc)
 
@@ -40,7 +42,8 @@ def inputloop(irc):
 			for name in names:
 				op(name, irc)
 
-def rankcheck(nick):
+def opcheck(nick):
+	operators = rankedplayers()
 	for op in operators:
 		if nick == op:
 			return 1
@@ -60,7 +63,17 @@ def namelist(irc):
 	return names
 
 def op(name, irc):
-	if rankcheck(name) == 1:
+	if opcheck(name) == 1:
 		irc.send("MODE %s +o %s\r\n" % (channel, name))
+
+def rankedplayers():
+	rankedplayers = []
+	response = urllib2.urlopen("https://moetto.dy.fi/frisbeer/API/players/?format=json")
+	myjson = response.read()
+	list = json.loads(myjson)
+	for item in list:
+		if item["rank"] != "":
+			rankedplayers.append(item["name"])
+	return rankedplayers
 
 main()
