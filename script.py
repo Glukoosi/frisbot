@@ -87,9 +87,9 @@ def rankedplayers():
 	return rankedplayers
 
 def getdata(dtype):
-	response = urlopen("https://moetto.dy.fi/frisbeer/API/{}/?format=json".format(dtype))
+	response = urlopen("https://moetto.dy.fi/frisbeer/API/{}/?format=json".format(dtype).decode('utf-8'))
 	myjson = response.read()
-	return json.loads(myjson)
+	return json.load(myjson)
 
 def playerrank(name):
 	plist = getdata("players")
