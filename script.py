@@ -37,22 +37,27 @@ def inputloop(irc):
 			data = data.split("!")
 			data = data[0].lstrip(":")
 			op(data, irc)
-		elif data.find (" MODE {} +o {}\r\n".format(channel, nick)) != -1:
+		elif data.find (" MODE {} +o {}".format(channel, nick)) != -1:
 			names = namelist(irc)
 			for name in names:
 				op(name, irc)
-		elif data.lower().find("!rank")!=-1:
+		elif data.lower().find(":!rank")!=-1:
 			ndata = data.split(" ")
-			if ndata[-1] != ":!rank\r\n":
+			if ndata[-2] == ":!rank":
 				name = ndata[-1].rstrip()
-			else:
+				say(playerrank(name), irc)
+			elif ndata[-1] == ":!rank\r\n":
 				data = data.split("!")
 				name = data[0].lstrip(":")
-			say(playerrank(name), irc)
-		elif data.lower().find("!lastgame")!=-1:
-			glist = getdata("games")
-			plist = getdata("players")
-			
+				say(playerrank(name), irc)
+			else:
+				say("Vain yksi argumentti, korvaa välilyönnit alaviivalla.", irc)
+		elif data.lower().find(":!help")!=-1:
+			say("komennot: !rank, !lastgame, !lastlastgame", irc)
+		elif data.lower().find(":!lastgame")!=-1:
+			say(lastgame(-1), irc)
+		elif data.lower().find(":!lastlastgame")!=-1:
+			say(lastgame(-2), irc)
 			
 def opcheck(nick):
 	operators = rankedplayers()
@@ -66,8 +71,8 @@ def say(message, irc):
 	return ""
 
 def namelist(irc):
-	irc.send("NAMES {}\r\n".format(channel))
-	names = irc.recv ( 4096 )
+	irc.send("NAMES {}\r\n".format(channel).encode('utf-8'))
+	names = irc.recv ( 4096 ).decode('utf-8')
 	names = names.split(":")
 	names = names[2].split(" ")
 	names.pop()
@@ -87,19 +92,47 @@ def rankedplayers():
 	return rankedplayers
 
 def getdata(dtype):
-	response = urlopen("https://moetto.dy.fi/frisbeer/API/{}/?format=json".format(dtype).decode('utf-8'))
+	try:
+		esponse = urlopen("https://soetto.dy.fi/frisbeer/API/{}/?format=json".format(dtype))
+	except error.URLError:
+		say("Serveriin ei saa yhtteyttä, T3mu pls fix", irc)
 	myjson = response.read()
-	return json.load(myjson)
+	return json.loads(myjson.decode('utf-8'))
 
 def playerrank(name):
 	plist = getdata("players")
 	for player in plist:
-		if player["name"] == name:
+		if player["name"].replace(" ", "_") == name:
 			if player["rank"] == "":
-				return "Mutta sinullahan ei ole rankkia."
+				return "Pelaajalla {} ei ole rankkia.".format(player["name"])
 			else:
 				return player["rank"]
-	return "lol noob"
-				
+	return "{} ei ole pelannut frisbeeriä :(".format(name)
+
+def lastgame(index):
+	plist = getdata("players")
+	glist = getdata("games")
+	data = []
+	time = glist[index]["date"].split("T")
+	data.append("{2}.{1}.{0}".format(*time[0].split("-")))
+	for iidee in glist[index]["team1"]:
+		n = 0
+		while 1:
+			if plist[n]["id"] == iidee:
+				data.append(plist[n]["name"])
+				break
+			else:
+				n+=1
+	for iidee in glist[index]["team2"]:
+		n = 0
+		while 1:
+			if plist[n]["id"] == iidee:
+				data.append(plist[n]["name"])
+				break
+			else:
+				n+=1
+	data.append(glist[index]["team1_score"])
+	data.append(glist[index]["team2_score"])
+	return ("{0}  {1}, {2}, {3} vs. {4}, {5}, {6}  päättyi {7} - {8}".format(*data))
 			
 main()
