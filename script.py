@@ -9,7 +9,7 @@ port = 6667
 nick = "frisbot"
 username = "frisbot"
 realname = "frisbot"
-channel = "#frisbottest"
+channel = "#frisbeer"
 
 
 def main():
@@ -30,7 +30,6 @@ def connect():
 def inputloop(irc):
 	while True:
 		data = irc.recv ( 4096 ).decode('utf-8')
-		print(data)
 		if data.find ("PING") != -1:
 			irc.send ( "PONG {}\r\n".format(data.split() [ 1 ]).encode('utf-8'))
 		elif data.find ("JOIN") != -1:
@@ -41,10 +40,10 @@ def inputloop(irc):
 			names = namelist(irc)
 			for name in names:
 				op(name, irc)
-		elif data.lower().find(":!rank")!=-1:
+		elif data.lower().find(":!rank ")!=-1 or data.lower().find(":!rank\r\n")!=-1:
 			ndata = data.split(" ")
 			if ndata[-2] == ":!rank":
-				name = ndata[-1].rstrip()
+				name = ndata[-1].strip()
 				say(playerrank(name), irc)
 			elif ndata[-1] == ":!rank\r\n":
 				data = data.split("!")
@@ -52,11 +51,11 @@ def inputloop(irc):
 				say(playerrank(name), irc)
 			else:
 				say("Vain yksi argumentti, korvaa välilyönnit alaviivalla.", irc)
-		elif data.lower().find(":!help")!=-1:
+		elif data.lower().find(":!help\r\n")!=-1:
 			say("komennot: !rank, !lastgame, !lastlastgame", irc)
-		elif data.lower().find(":!lastgame")!=-1:
+		elif data.lower().find(":!lastgame\r\n")!=-1:
 			say(lastgame(-1), irc)
-		elif data.lower().find(":!lastlastgame")!=-1:
+		elif data.lower().find(":!lastlastgame\r\n")!=-1:
 			say(lastgame(-2), irc)
 			
 def opcheck(nick):
@@ -92,10 +91,7 @@ def rankedplayers():
 	return rankedplayers
 
 def getdata(dtype):
-	try:
-		esponse = urlopen("https://soetto.dy.fi/frisbeer/API/{}/?format=json".format(dtype))
-	except error.URLError:
-		say("Serveriin ei saa yhtteyttä, T3mu pls fix", irc)
+	response = urlopen("https://moetto.dy.fi/frisbeer/API/{}/?format=json".format(dtype))
 	myjson = response.read()
 	return json.loads(myjson.decode('utf-8'))
 
