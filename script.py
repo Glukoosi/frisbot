@@ -30,6 +30,8 @@ def connect():
 def inputloop(irc):
 	while True:
 		data = irc.recv ( 4096 ).decode('utf-8')
+		data = data.strip() + "\r\n"
+		print(data)
 		if data.find ("PING") != -1:
 			irc.send ( "PONG {}\r\n".format(data.split() [ 1 ]).encode('utf-8'))
 		elif data.find ("JOIN") != -1:
@@ -41,11 +43,11 @@ def inputloop(irc):
 			for name in names:
 				op(name, irc)
 		elif data.lower().find(":!rank ")!=-1 or data.lower().find(":!rank\r\n")!=-1:
-			ndata = data.split(" ")
+			ndata = data.split()
 			if ndata[-2] == ":!rank":
 				name = ndata[-1].strip()
 				say(playerrank(name), irc)
-			elif ndata[-1] == ":!rank\r\n":
+			elif ndata[-1] == ":!rank":
 				data = data.split("!")
 				name = data[0].lstrip(":")
 				say(playerrank(name), irc)
