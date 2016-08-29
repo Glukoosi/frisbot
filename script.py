@@ -6,9 +6,9 @@ import json
 ircserver = "irc.inet.fi"
 port = 6667
 
-nick = "frisbotti"
+nick = "frisbot"
 username = "frisbot"
-realname = "testing frisbot"
+realname = "frisbot"
 channel = "#frisbottest"
 
 
@@ -33,15 +33,28 @@ def inputloop(irc):
 		print(data)
 		if data.find ("PING") != -1:
 			irc.send ( "PONG " + data.split() [ 1 ] + "\r\n" )
-		if data.find ("JOIN") != -1:
+		elif data.find ("JOIN") != -1:
 			data = data.split("!")
 			data = data[0].lstrip(":")
 			op(data, irc)
-		if data.find (" MODE %s +o %s" % (channel, nick)) != -1:
+		elif data.find (" MODE %s +o %s" % (channel, nick)) != -1:
 			names = namelist(irc)
 			for name in names:
 				op(name, irc)
-
+		elif data.lower().find("!rank")!=-1:
+			ndata = data.split(" ")
+			if ndata[-1] != ":!rank":
+				name = ndata[-1]
+			else:
+				data = data.split("!")
+				name = data[0].lstrip(":")
+			print name
+			say(playerrank(name), irc)
+		elif data.lower().find("!lastgame")!=-1:
+			glist = getdata("games")
+			plist = getdata("players")
+			
+			
 def opcheck(nick):
 	operators = rankedplayers()
 	for op in operators:
@@ -68,12 +81,28 @@ def op(name, irc):
 
 def rankedplayers():
 	rankedplayers = []
-	response = urllib2.urlopen("https://moetto.dy.fi/frisbeer/API/players/?format=json")
-	myjson = response.read()
-	list = json.loads(myjson)
+	list = getdata("players")
 	for item in list:
 		if item["rank"] != "":
 			rankedplayers.append(item["name"])
 	return rankedplayers
+
+def getdata(dtype):
+	response = urllib2.urlopen("https://moetto.dy.fi/frisbeer/API/%s/?format=json" % dtype)
+	myjson = response.read()
+	return json.loads(myjson)
+
+def playerrank(name):
+	plist = getdata("players")
+	for player in plist:
+		if player["name"] == name:
+			if player["rank"] == "":
+				return "Mutta sinullahan ei ole rankkia."
+			else:
+				return player["rank"]
+	return "lol noob"
+				
+			
+
 
 main()
