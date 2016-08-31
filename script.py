@@ -1,20 +1,18 @@
 import socket
-import time
 from urllib.request import urlopen
 import json
 
 ircserver = "irc.inet.fi"
 port = 6667
 
-nick = "frisbot"
+nick = "frisbotti"
 username = "frisbot"
 realname = "frisbot"
-channel = "#frisbeer"
+channel = "#frisbottest"
 
 
 def main():
 	irc = connect()
-	time.sleep(5)
 	say("gibe op pls", irc)
 	inputloop(irc)
 
@@ -30,34 +28,27 @@ def connect():
 def inputloop(irc):
 	while True:
 		data = str(irc.recv(4096),"UTF-8", "replace")
-		data = data.strip() + "\r\n"
+		data = data.split()
 		print(data)
-		if data.find ("PING") != -1:
-			irc.send ( "PONG {}\r\n".format(data.split() [ 1 ]).encode('utf-8'))
-		elif data.find ("JOIN") != -1:
-			data = data.split("!")
-			data = data[0].lstrip(":")
-			op(data, irc)
-		elif data.find (" MODE {} +o {}".format(channel, nick)) != -1:
-			names = namelist(irc)
-			for name in names:
-				op(name, irc)
-		elif data.lower().find(":!rank ")!=-1 or data.lower().find(":!rank\r\n")!=-1:
-			ndata = data.split()
-			if ndata[-2] == ":!rank":
-				name = ndata[-1].strip()
+		if "PING" in data:
+			irc.send ( "PONG {}\r\n".format(data[1]).encode('utf-8'))
+		elif "JOIN" in data: 
+			name = data[0].lstrip(":").split("!")
+			op(name[0], irc)
+		elif ":!rank" in data:
+			if data[-2] == ":!rank":
+				name = data[-1]
 				say(playerrank(name), irc)
-			elif ndata[-1] == ":!rank":
-				data = data.split("!")
-				name = data[0].lstrip(":")
-				say(playerrank(name), irc)
+			elif data[-1] == ":!rank":
+				name = data[0].lstrip(":").split("!")
+				say(playerrank(name[0]), irc)
 			else:
 				say("Vain yksi argumentti, korvaa välilyönnit alaviivalla.", irc)
-		elif data.lower().find(":!help\r\n")!=-1:
+		elif ":!help" in data:
 			say("komennot: !rank, !lastgame, !lastlastgame", irc)
-		elif data.lower().find(":!lastgame\r\n")!=-1:
+		elif ":!lastgame" in data:
 			say(lastgame(-1), irc)
-		elif data.lower().find(":!lastlastgame\r\n")!=-1:
+		elif ":!lastlastgame" in data:
 			say(lastgame(-2), irc)
 			
 def opcheck(nick):
@@ -70,15 +61,6 @@ def opcheck(nick):
 def say(message, irc):
 	irc.send("PRIVMSG {} :{}\r\n".format(channel, message).encode('utf-8'))
 	return ""
-
-def namelist(irc):
-	irc.send("NAMES {}\r\n".format(channel).encode('utf-8'))
-	names = irc.recv ( 4096 ).decode('utf-8')
-	names = names.split(":")
-	names = names[2].split(" ")
-	names.pop()
-	print (names)
-	return names
 
 def op(name, irc):
 	if opcheck(name) == 1:
