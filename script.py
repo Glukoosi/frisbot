@@ -29,7 +29,7 @@ def connect():
 
 def inputloop(irc):
 	while True:
-		data = irc.recv ( 4096 ).decode('utf-8')
+		data = str(irc.recv(4096),"UTF-8", "replace")
 		data = data.strip() + "\r\n"
 		print(data)
 		if data.find ("PING") != -1:
