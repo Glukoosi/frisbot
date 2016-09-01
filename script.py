@@ -45,11 +45,17 @@ def inputloop(irc):
 			else:
 				say("Vain yksi argumentti, korvaa välilyönnit alaviivalla.", irc)
 		elif ":!help" in data:
-			say("komennot: !rank, !lastgame, !lastlastgame", irc)
+			say("komennot: !rank, !lastgame, !lastlastgame !defname", irc)
 		elif ":!lastgame" in data:
 			say(lastgame(-1), irc)
 		elif ":!lastlastgame" in data:
 			say(lastgame(-2), irc)
+		elif ":!defname" in data;
+			if data [-2] == ":defname":
+				name = data[0].lstrip(":").split("!")
+				defname(data[-1], name)
+			else:
+				say("Vain yksi argumentti, anna frisbeer clientin nimimerkki jonka haluat linkittää irc nimimerkkiin.", irc)
 			
 def opcheck(nick):
 	operators = rankedplayers()
