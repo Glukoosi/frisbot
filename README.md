@@ -1,1 +1,1 @@
-# ircbot
+Ircbot for #frisbeer.
