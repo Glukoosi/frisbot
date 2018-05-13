@@ -122,7 +122,7 @@ def rankedplayers():
 
 
 def getdata(dtype):
-    try: response = urlopen("https://rant.org/frisbeer/API/{}/?format=json".format(dtype))
+    try: response = urlopen("https://frisbeer.win/frisbeer/API/{}/?format=json".format(dtype))
     except urllib.error.URLError:
         say("Serveriin ei saatu yhteyttä, Runtu pls fix", channel, irc) 
         time.sleep(5)
